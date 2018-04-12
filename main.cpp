@@ -30,31 +30,39 @@ double trygo(double x);
 double skladka(double x);
 
 
-void menu();
+bool menu(int& c);
 void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<double> y_axis, vector<double> x_axis);
 void rys_wykres(string nazwa);
 void clear_screen();
-void interpolacja(int n, double(*fun)(double), double x[],double X, vector<double> y_axis);
+double interpolacja(int n, vector<double> y_axis, vector<double> x_axis, double X);
+// void interpolacja_kuba(vector<double> x, vector<double> y, int n, vector<double>& wynik);
 
 int main()
 {
-	menu();
+	int c;
+	do{
+		menu(c);
+	}while(c!=0);
 	return 0;
 }
 
-void menu(){
+bool menu(int& c){
 	
 	clear_screen();
 
 	cout << "Wybierz typ wykresu: \n" << "1. Liniowy ( y = 13x - 9)\n" << "2. Wartość bezwzględna z x [ |x| ]\n" 
 		 << "3. Wielomian (3x^3 + 8x^2 - x + 1)\n" << "4. cos(x)\n" << "5. Złożenie funkcji (f[x] = 13*|x| - 9) \n"
-		 << "[q] Wyjdź.\n" << "Twój wybór: ";
+		 << "[0] Wyjdź.\n" << "Twój wybór: ";
 
 
-	int c,n;
+	int n;
 	cin >> c;
 	getchar();
-	rys_wykres(funkcje[c-1]);
+	string nazwa = funkcje[c-1];
+	if(c == 0){
+		return 0;
+	}
+	rys_wykres(nazwa);
 	double a,b;
 	cout << "Podaj przedział interpolowania: ";
 	cin >> a >> b;
@@ -67,38 +75,72 @@ void menu(){
 
 	double odleglosc = abs(a-b)/n;
 
-	double* x = new double[n];
-	x[0]= a;
-	for(int i=1;i<n;i++){
-		x[i] = x[i-1]+odleglosc;
-	}
-
 	vector<double> y_axis(n);
 	vector<double> x_axis(n);
-
+	vector<double> X(n);
+	vector<double> Y(n);
+	X[0]=x_axis[0]=a;
+	for(int i=1;i<n;i++){
+		X[i] = X[i-1]+odleglosc;
+		x_axis[i] = x_axis[i-1]+odleglosc;
+	}
+	// double* wynik = new double[roz];
 	switch(c){
 		case 1:{
-			// rys_wykres(a,b,funkcje[c-1], liniowa);
-			// interpolacja(n,liniowa,x,0,y_axis);
-			rys_wykres(a,b,funkcje[c-1],liniowa,y_axis,x_axis);
+			for(int i=0;i<n;i++){
+				y_axis[i] = liniowa(x_axis[i]);
+			}
+			for(int i=0;i<n;i++){
+				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
+			}
+			rys_wykres(a,b,nazwa,liniowa,Y,X);
 			break;
 		}
 		case 2:{
 			// rys_wykres(a,b, funkcje[c-1], absolute);
+			for(int i=0;i<n;i++){
+				y_axis[i] = absolute(x_axis[i]);
+			}
+			for(int i=0;i<n;i++){
+				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
+			}
+			rys_wykres(a,b,nazwa,absolute,Y,X);
 			break;
 		}
 		case 3:{
 			// rys_wykres(a,b,funkcje[c-1], wielomian);
+			for(int i=0;i<n;i++){
+				y_axis[i] = wielomian(x_axis[i]);
+			}
+			for(int i=0;i<n;i++){
+				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
+			}
+			rys_wykres(a,b,nazwa,wielomian,Y,X);
 			break;
 		}
 		case 4:{
 			// rys_wykres(a,b,funkcje[c-1], trygo);
+			for(int i=0;i<n;i++){
+				y_axis[i] = trygo(x_axis[i]);
+			}
+			for(int i=0;i<n;i++){
+				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
+			}
+			rys_wykres(a,b,nazwa,trygo,Y,X);
 			break;
 		}
 		case 5:{
 			// rys_wykres(a,b,funkcje [c-1], skladka);
+			for(int i=0;i<n;i++){
+				y_axis[i] = skladka(x_axis[i]);
+			}
+			for(int i=0;i<n;i++){
+				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
+			}
+			rys_wykres(a,b,nazwa,skladka,Y,X);
 			break;
 		}
+		default: return 0;
 	}
 }
 
@@ -106,17 +148,49 @@ void clear_screen(){
 	cout << "\x1B[2J\x1B[H"; // Na UNIXach czyści terminal
 }
 
-void interpolacja(int n, double(*fun)(double),double x[],double X,vector<double> y_axis){
-	double tmp=1;
-	// double* x = new double[n];
-	for(int i=0;i<n;i++){
-		for(int j=0;j<n;j++){
-			tmp *= (X-x[j])/(x[i]-x[j]);
+/*
+void interpolacja_kuba(vector<double> x, vector<double> y, int n, vector<double>& wynik)
+	{
+		for (int i = 0 ; i < n ; i++)
+		{
+			wynik[i] = y[i];
+			for (int k = 0 ; k < n ; k++)
+			{
+				if(x[i] != x[k])
+				{
+					wynik[i] *= (1.0 - x[k]);
+					wynik[i] /= (x[i]- x[k]);
+				}
+			}
 		}
-		y_axis[i] = fun(x[i])*tmp;
+		cout << endl;
+		for (int i = 0 ; i < n ; i++)
+		{
+			cout << wynik[i] << '\t';
+		}
+		cout << endl;
 	}
-}	// n to liczba węzłów, fun to funkcja wybrana przez użytkownika, x to tablica osi X, X to wartość x dla której badamy
-	// funkcję, koniec to wartość końcowa wszystkich punktów
+*/
+
+double interpolacja(int n,vector<double> y_axis, vector<double> x_axis, double X){
+	double wynik=0.0;
+	double temp=1.0;
+	for(int i=0;i<n;i++){
+		temp = y_axis[i];
+		// cout << temp << " " << x_axis[i] << " " << X  << " " << y_axis[i] << " ";
+		for(int j=0;j<n;j++){
+			if(i!=j){
+				temp = temp*( X - x_axis[j] ) ;
+				temp = temp/ (x_axis[i] - x_axis[j]);
+				// cout << temp << " ";
+			}
+		}
+		wynik += temp;
+		// cout << wynik << " ";
+	}
+	return wynik;
+}
+
 
 void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<double> y_axis, vector<double> x_axis){
 
@@ -129,13 +203,13 @@ void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<do
 	wykres.set_xlabel("Os x");
 	wykres.set_ylabel("Os y");
 
-	double tmp=a, roz = (abs(a-b)*5)+1;
+	double temp=a, roz = (abs(a-b)*5)+1;
 	vector<double> x(roz);
 	vector<double> y(roz);
 
 	for(int i=0;i<roz;i++){
-		x[i] = tmp;
-		tmp += 0.2;
+		x[i] = temp;
+		temp += 0.2;
 	}
 
 	for(int i=0;i<roz;i++){
@@ -143,10 +217,11 @@ void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<do
 	}
 
 	wykres.plot_xy(x,y,nazwa);
-	getchar();
 
 	wykres.set_style("points");
 	wykres.plot_xy(x_axis,y_axis,nazwa+" interpolowane");
+	wykres.set_style("lines");
+	wykres.plot_xy(x_axis,y_axis,nazwa+"interpolowane");
 	getchar();
 
 }
@@ -162,7 +237,7 @@ void rys_wykres(string nazwa){
 	wykres.set_xlabel("Os x");
 	wykres.set_ylabel("Os y");
 
-	wykres.plot_equation("13*x-9");
+	wykres.plot_equation(nazwa);
 	getchar();
 }
 
