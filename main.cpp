@@ -31,11 +31,12 @@ double skladka(double x);
 
 
 bool menu(int& c);
-void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<double> y_axis, vector<double> x_axis);
+void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<double> y_axis, vector<double> x_axis,vector<double> x_nodes,
+				vector<double> y_node);
 void rys_wykres(string nazwa);
 void clear_screen();
 double interpolacja(int n, vector<double> y_axis, vector<double> x_axis, double X);
-// void interpolacja_kuba(vector<double> x, vector<double> y, int n, vector<double>& wynik);
+double interpolacja_wspolczynniki(int n,vector<double> y_axis, vector<double> x_axis,double wsp[]);
 
 int main()
 {
@@ -77,122 +78,100 @@ bool menu(int& c){
 
 	vector<double> y_axis(n);
 	vector<double> x_axis(n);
-	vector<double> X(n);
-	vector<double> Y(n);
+	int roz = (abs(a-b)*10)+1;
+	vector<double> X(roz);
+	vector<double> Y(roz);
 	X[0]=x_axis[0]=a;
 	for(int i=1;i<n;i++){
-		X[i] = X[i-1]+odleglosc;
 		x_axis[i] = x_axis[i-1]+odleglosc;
 	}
-	// double* wynik = new double[roz];
+	double tmp = a;
+	for(int i=0;i<roz;i++){
+		X[i] = tmp;
+		tmp += 0.1;
+	}
+	double* wsp = new double[n];
 	switch(c){
 		case 1:{
 			for(int i=0;i<n;i++){
 				y_axis[i] = liniowa(x_axis[i]);
 			}
-			for(int i=0;i<n;i++){
-				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
+			for(int i=0;i<roz;i++){
+				Y[i] = interpolacja(n,y_axis,x_axis, X[i]);
 			}
-			rys_wykres(a,b,nazwa,liniowa,Y,X);
+			rys_wykres(a,b,nazwa,liniowa,Y,X,x_axis,y_axis);
 			break;
 		}
 		case 2:{
-			// rys_wykres(a,b, funkcje[c-1], absolute);
 			for(int i=0;i<n;i++){
 				y_axis[i] = absolute(x_axis[i]);
 			}
-			for(int i=0;i<n;i++){
+			for(int i=0;i<roz;i++){
 				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
 			}
-			rys_wykres(a,b,nazwa,absolute,Y,X);
+			rys_wykres(a,b,nazwa,absolute,Y,X,x_axis,y_axis);
 			break;
 		}
 		case 3:{
-			// rys_wykres(a,b,funkcje[c-1], wielomian);
 			for(int i=0;i<n;i++){
 				y_axis[i] = wielomian(x_axis[i]);
 			}
-			for(int i=0;i<n;i++){
+			for(int i=0;i<roz;i++){
 				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
 			}
-			rys_wykres(a,b,nazwa,wielomian,Y,X);
+			rys_wykres(a,b,nazwa,wielomian,Y,X,x_axis,y_axis);
 			break;
 		}
 		case 4:{
-			// rys_wykres(a,b,funkcje[c-1], trygo);
 			for(int i=0;i<n;i++){
 				y_axis[i] = trygo(x_axis[i]);
 			}
-			for(int i=0;i<n;i++){
+			for(int i=0;i<roz;i++){
 				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
 			}
-			rys_wykres(a,b,nazwa,trygo,Y,X);
+			rys_wykres(a,b,nazwa,trygo,Y,X,x_axis,y_axis);
 			break;
 		}
 		case 5:{
-			// rys_wykres(a,b,funkcje [c-1], skladka);
 			for(int i=0;i<n;i++){
 				y_axis[i] = skladka(x_axis[i]);
 			}
-			for(int i=0;i<n;i++){
+			for(int i=0;i<roz;i++){
 				Y[i] = interpolacja(n,y_axis,x_axis,X[i]);
 			}
-			rys_wykres(a,b,nazwa,skladka,Y,X);
+			rys_wykres(a,b,nazwa,skladka,Y,X,x_axis,y_axis);
 			break;
 		}
 		default: return 0;
 	}
+	delete [] wsp;
 }
 
 void clear_screen(){
 	cout << "\x1B[2J\x1B[H"; // Na UNIXach czyści terminal
 }
 
-/*
-void interpolacja_kuba(vector<double> x, vector<double> y, int n, vector<double>& wynik)
-	{
-		for (int i = 0 ; i < n ; i++)
-		{
-			wynik[i] = y[i];
-			for (int k = 0 ; k < n ; k++)
-			{
-				if(x[i] != x[k])
-				{
-					wynik[i] *= (1.0 - x[k]);
-					wynik[i] /= (x[i]- x[k]);
-				}
-			}
-		}
-		cout << endl;
-		for (int i = 0 ; i < n ; i++)
-		{
-			cout << wynik[i] << '\t';
-		}
-		cout << endl;
-	}
-*/
 
 double interpolacja(int n,vector<double> y_axis, vector<double> x_axis, double X){
 	double wynik=0.0;
 	double temp=1.0;
 	for(int i=0;i<n;i++){
 		temp = y_axis[i];
-		// cout << temp << " " << x_axis[i] << " " << X  << " " << y_axis[i] << " ";
 		for(int j=0;j<n;j++){
 			if(i!=j){
 				temp = temp*( X - x_axis[j] ) ;
 				temp = temp/ (x_axis[i] - x_axis[j]);
-				// cout << temp << " ";
 			}
 		}
 		wynik += temp;
-		// cout << wynik << " ";
 	}
 	return wynik;
 }
 
 
-void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<double> y_axis, vector<double> x_axis){
+
+void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<double> y_axis, vector<double> x_axis, vector<double> x_nodes,
+				vector<double> y_nodes){
 
 	Gnuplot wykres;
 	wykres.set_grid();
@@ -203,13 +182,13 @@ void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<do
 	wykres.set_xlabel("Os x");
 	wykres.set_ylabel("Os y");
 
-	double temp=a, roz = (abs(a-b)*5)+1;
+	double temp=a, roz = (abs(a-b)*10)+1;
 	vector<double> x(roz);
 	vector<double> y(roz);
 
 	for(int i=0;i<roz;i++){
 		x[i] = temp;
-		temp += 0.2;
+		temp += 0.1;
 	}
 
 	for(int i=0;i<roz;i++){
@@ -219,7 +198,7 @@ void rys_wykres(double a, double b, string nazwa, double(*fun)(double),vector<do
 	wykres.plot_xy(x,y,nazwa);
 
 	wykres.set_style("points");
-	wykres.plot_xy(x_axis,y_axis,nazwa+" interpolowane");
+	wykres.plot_xy(x_nodes,y_nodes,"Wezly");
 	wykres.set_style("lines");
 	wykres.plot_xy(x_axis,y_axis,nazwa+"interpolowane");
 	getchar();
