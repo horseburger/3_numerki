@@ -221,13 +221,29 @@ void rys_wykres(string nazwa){
 }
 
 double liniowa(double x){
-		return (13*x-9);
+	int st=1;
+	double wsp[2]={13,-9};
+	double wynik = wsp[0];
+
+	for(int i=1;i<=st;i++)
+		wynik = wynik*x + wsp[i];
+		
+	return wynik;
+		// return (13*x-9);
 }
 double absolute(double x){
 		return abs(x);
 }
 double wielomian(double x){
-		return (3*(x*x*x)+8*(x*x)-x+1);
+	int st=3;
+	double wsp[4]={3,8,-1,1};
+	double wynik = wsp[0];
+
+	for(int i=1;i<=st;i++)
+		wynik = wynik*x + wsp[i];
+		
+	return wynik;
+		// return (3*(x*x*x)+8*(x*x)-x+1);
 }
 double trygo(double x){
 		return cos(x);
